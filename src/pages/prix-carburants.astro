@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import meta from '../../data/meta.json';
+import deptList from '../../data/departements-list.json';
+
+const title = "Prix des carburants en France - Comparateur par departement";
+const description = `Comparez les prix des carburants en France. Prix moyen gazole ${meta.prixMoyen.gazole?.toFixed(3) || '-'} EUR, SP95 ${meta.prixMoyen.sp95?.toFixed(3) || '-'} EUR. Classement par departement.`;
+
+const fuels = [
+  { key: 'gazole', label: 'Gazole' },
+  { key: 'sp95', label: 'SP95' },
+  { key: 'e10', label: 'E10' },
+  { key: 'sp98', label: 'SP98' },
+  { key: 'e85', label: 'E85' },
+  { key: 'gplc', label: 'GPLc' },
+];
+
+// Sort by cheapest gazole
+const deptsByPrice = [...deptList]
+  .filter((d: any) => d.stats.prixMoyen.gazole)
+  .sort((a: any, b: any) => (a.stats.prixMoyen.gazole || 99) - (b.stats.prixMoyen.gazole || 99));
+---
+
+<BaseLayout title={title} description={description}>
+  <h1 class="text-2xl md:text-3xl font-extrabold mb-4">
+    Prix des carburants en France
+  </h1>
+
+  <!-- National Average -->
+  <div class="bg-white rounded-lg shadow p-4 mb-6">
+    <h2 class="font-bold text-lg mb-3">Prix moyens nationaux</h2>
+    <div class="grid grid-cols-3 sm:grid-cols-6 gap-4 text-center">
+      {fuels.map(f => (
+        <div class="p-3 rounded-lg bg-gray-50">
+          <div class="text-sm font-medium text-[var(--color-text-muted)]">{f.label}</div>
+          <div class="text-xl font-bold text-[var(--color-primary)]">
+            {(meta.prixMoyen as any)[f.key]?.toFixed(3) || '-'}
+          </div>
+          <div class="text-xs text-[var(--color-text-muted)]">EUR/L</div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- By Department -->
+  <section class="mb-8">
+    <h2 class="text-xl font-bold mb-4">Prix par departement (tri par prix Gazole)</h2>
+    <div class="bg-white rounded-lg shadow overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="text-left px-3 py-2 font-semibold sticky left-0 bg-gray-50">Departement</th>
+            {fuels.map(f => (
+              <th class="text-right px-3 py-2 font-semibold">{f.label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {deptsByPrice.map((dept: any, i: number) => (
+            <tr class={`border-t ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50`}>
+              <td class="px-3 py-2 sticky left-0 bg-inherit">
+                <a href={`/station-essence/${dept.slug}/`} class="text-[var(--color-primary)] hover:underline font-medium">
+                  {dept.nom} ({dept.code})
+                </a>
+              </td>
+              {fuels.map(f => (
+                <td class="px-3 py-2 text-right font-mono">
+                  {dept.stats.prixMoyen[f.key]?.toFixed(3) || '-'}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="text-xs text-center text-[var(--color-text-muted)]">
+    Derniere mise a jour : {new Date(meta.lastUpdate).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' })}
+  </p>
+</BaseLayout>

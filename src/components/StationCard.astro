@@ -1,0 +1,100 @@
+---
+interface Props {
+  station: {
+    id: string;
+    adresse: string;
+    ville: string;
+    cp: string;
+    prix: Record<string, number | null>;
+    ruptures: { temporaire: string[]; definitive: string[] };
+    carburantsDisponibles: string[];
+    horaires: string;
+    automate24h: boolean;
+    services: string[];
+  };
+  detailed?: boolean;
+}
+
+const { station, detailed = false } = Astro.props;
+const s = station;
+
+const hasRupture = s.ruptures.temporaire.length > 0 || s.ruptures.definitive.length > 0;
+const allRupture = s.carburantsDisponibles.length === 0 && hasRupture;
+
+const statusColor = allRupture ? 'bg-red-100 border-red-300' : hasRupture ? 'bg-orange-50 border-orange-300' : 'bg-green-50 border-green-300';
+const statusBadge = allRupture ? 'bg-red-600' : hasRupture ? 'bg-orange-500' : 'bg-green-600';
+const statusText = allRupture ? 'Rupture totale' : hasRupture ? 'Rupture partielle' : 'Disponible';
+
+const fuelLabels: Record<string, string> = {
+  gazole: 'Gazole', sp95: 'SP95', e10: 'E10', sp98: 'SP98', e85: 'E85', gplc: 'GPLc',
+};
+
+const fuelOrder = ['gazole', 'sp95', 'e10', 'sp98', 'e85', 'gplc'];
+---
+
+<article class={`rounded-lg border-2 p-4 ${statusColor} transition hover:shadow-md`} data-station-id={s.id}>
+  <div class="flex items-start justify-between gap-2 mb-2">
+    <div>
+      <h3 class="font-bold text-base">{s.adresse}</h3>
+      <p class="text-sm text-[var(--color-text-muted)]">{s.cp} {s.ville}</p>
+    </div>
+    <span class={`${statusBadge} text-white text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap`}>
+      {statusText}
+    </span>
+  </div>
+
+  <!-- Fuel Prices -->
+  <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-3">
+    {fuelOrder.map(fuel => {
+      const price = s.prix[fuel];
+      const isRuptureTemp = s.ruptures.temporaire.map(r => r.toLowerCase()).includes(fuel.toLowerCase()) ||
+                            s.ruptures.temporaire.map(r => r.toLowerCase()).includes(fuelLabels[fuel]?.toLowerCase());
+      const isRuptureDef = s.ruptures.definitive.map(r => r.toLowerCase()).includes(fuel.toLowerCase()) ||
+                           s.ruptures.definitive.map(r => r.toLowerCase()).includes(fuelLabels[fuel]?.toLowerCase());
+      const isRupture = isRuptureTemp || isRuptureDef;
+
+      return (
+        <div class={`text-center p-2 rounded ${isRupture ? 'bg-red-200 line-through opacity-60' : price ? 'bg-white/80' : 'bg-gray-100 opacity-40'}`}>
+          <div class="text-xs font-medium text-[var(--color-text-muted)]">{fuelLabels[fuel]}</div>
+          <div class="font-bold text-sm">
+            {isRupture ? 'Rupture' : price ? `${price.toFixed(3)}` : '-'}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+
+  {detailed && (
+    <>
+      {/* Horaires */}
+      {s.horaires && (
+        <div class="mt-3 text-sm">
+          <p class="font-medium">Horaires :</p>
+          <p class="text-[var(--color-text-muted)]">
+            {s.automate24h ? 'Automate 24h/24' : s.horaires}
+          </p>
+        </div>
+      )}
+
+      {/* Services */}
+      {s.services.length > 0 && (
+        <div class="mt-2 text-sm">
+          <p class="font-medium">Services :</p>
+          <div class="flex flex-wrap gap-1 mt-1">
+            {s.services.map(svc => (
+              <span class="bg-gray-200 text-xs px-2 py-0.5 rounded">{svc}</span>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  )}
+
+  <!-- Report Button -->
+  <button
+    class="mt-3 text-xs text-red-600 hover:text-red-800 font-medium underline report-btn"
+    data-station={s.id}
+  >
+    Signaler une rupture
+  </button>
+</article>

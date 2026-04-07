@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SearchBar from '../components/SearchBar.astro';
+
+const title = "Page non trouvee - Penurie.fr";
+const description = "Cette page n'existe pas. Recherchez une station essence par code postal ou ville.";
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="text-center py-16">
+    <h1 class="text-6xl font-extrabold text-gray-300 mb-4">404</h1>
+    <h2 class="text-xl font-bold mb-4">Page non trouvee</h2>
+    <p class="text-[var(--color-text-muted)] mb-8">
+      Recherchez une station essence par code postal ou ville :
+    </p>
+    <SearchBar large />
+    <div class="mt-8">
+      <a href="/" class="text-[var(--color-primary)] hover:underline font-medium">
+        Retour a l'accueil
+      </a>
+    </div>
+  </div>
+</BaseLayout>

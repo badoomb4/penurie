@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Stats from '../components/Stats.astro';
+import meta from '../../data/meta.json';
+import deptList from '../../data/departements-list.json';
+
+const title = "Penurie de carburant en France - Etat des ruptures par departement";
+const description = `Etat de la penurie de carburant en France. ${meta.tauxRupture}% des stations en rupture. Classement des departements les plus touches.`;
+
+const sortedDepts = [...deptList].sort((a, b) => b.stats.tauxRupture - a.stats.tauxRupture);
+---
+
+<BaseLayout title={title} description={description}>
+  <h1 class="text-2xl md:text-3xl font-extrabold mb-4">
+    Penurie de carburant en France
+  </h1>
+
+  <Stats
+    totalStations={meta.totalStations}
+    totalRupture={meta.totalRupture}
+    tauxRupture={meta.tauxRupture}
+    prixMoyen={meta.prixMoyen}
+  />
+
+  {meta.tauxRupture > 20 && (
+    <div class="bg-red-50 border-2 border-red-300 rounded-lg p-4 mb-6 text-center">
+      <p class="font-bold text-red-700">
+        {meta.tauxRupture}% des stations signalent au moins une rupture de stock
+      </p>
+    </div>
+  )}
+
+  <section class="mb-8">
+    <h2 class="text-xl font-bold mb-4">Classement des departements</h2>
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="text-left px-4 py-2 font-semibold">#</th>
+            <th class="text-left px-4 py-2 font-semibold">Departement</th>
+            <th class="text-right px-4 py-2 font-semibold">Stations</th>
+            <th class="text-right px-4 py-2 font-semibold">En rupture</th>
+            <th class="text-right px-4 py-2 font-semibold">Taux</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedDepts.map((dept, i) => (
+            <tr class={`border-t ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition`}>
+              <td class="px-4 py-2 text-[var(--color-text-muted)]">{i + 1}</td>
+              <td class="px-4 py-2">
+                <a href={`/station-essence/${dept.slug}/`} class="font-medium text-[var(--color-primary)] hover:underline">
+                  {dept.nom} ({dept.code})
+                </a>
+              </td>
+              <td class="px-4 py-2 text-right">{dept.stats.totalStations}</td>
+              <td class="px-4 py-2 text-right text-red-600 font-medium">{dept.stats.totalRupture}</td>
+              <td class="px-4 py-2 text-right">
+                <span class={`font-bold px-2 py-0.5 rounded-full text-xs ${dept.stats.tauxRupture > 50 ? 'bg-red-100 text-red-700' : dept.stats.tauxRupture > 20 ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
+                  {dept.stats.tauxRupture}%
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="text-xs text-center text-[var(--color-text-muted)]">
+    Derniere mise a jour : {new Date(meta.lastUpdate).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' })}
+  </p>
+</BaseLayout>

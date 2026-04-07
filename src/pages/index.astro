@@ -1,0 +1,117 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SearchBar from '../components/SearchBar.astro';
+import Stats from '../components/Stats.astro';
+import meta from '../../data/meta.json';
+import deptList from '../../data/departements-list.json';
+
+const title = "Penurie de carburant en France - Trouvez une station essence ouverte";
+const description = `Trouvez les stations essence ouvertes pres de chez vous. ${meta.totalStations} stations, ${meta.totalRupture} en rupture (${meta.tauxRupture}%). Prix et disponibilite en temps reel.`;
+
+const topDepts = [...deptList]
+  .sort((a, b) => b.stats.tauxRupture - a.stats.tauxRupture)
+  .slice(0, 12);
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Penurie.fr",
+  "url": "https://penurie.fr",
+  "description": description,
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://penurie.fr/station-essence/{search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+};
+---
+
+<BaseLayout title={title} description={description} schema={schema}>
+  <!-- Hero -->
+  <section class="text-center py-8 md:py-12">
+    <h1 class="text-3xl md:text-4xl font-extrabold mb-4 leading-tight">
+      Penurie de carburant en France<br />
+      <span class="text-[var(--color-primary)]">Trouvez une station ouverte</span>
+    </h1>
+    <p class="text-[var(--color-text-muted)] mb-6 max-w-2xl mx-auto">
+      Consultez les prix, la disponibilite et les ruptures de stock des stations-service pres de chez vous. Donnees officielles mises a jour regulierement.
+    </p>
+    <SearchBar large />
+  </section>
+
+  <!-- Stats -->
+  <Stats
+    totalStations={meta.totalStations}
+    totalRupture={meta.totalRupture}
+    tauxRupture={meta.tauxRupture}
+    prixMoyen={meta.prixMoyen}
+  />
+
+  <!-- Alert Banner -->
+  {meta.tauxRupture > 20 && (
+    <div class="bg-red-50 border-2 border-red-300 rounded-lg p-4 mb-6 text-center">
+      <p class="font-bold text-red-700">
+        Alerte penurie : {meta.tauxRupture}% des stations signalent au moins une rupture de stock
+      </p>
+    </div>
+  )}
+
+  <!-- Map Link -->
+  <div class="text-center mb-8">
+    <a href="/carte/" class="inline-block bg-[var(--color-primary)] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[var(--color-primary-light)] transition shadow">
+      Voir la carte des stations
+    </a>
+  </div>
+
+  <!-- Departments Most Affected -->
+  <section class="mb-8">
+    <h2 class="text-2xl font-bold mb-4">Departements les plus touches</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      {topDepts.map(dept => (
+        <a href={`/station-essence/${dept.slug}/`}
+           class="bg-white rounded-lg shadow p-3 hover:shadow-md transition block">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-sm">{dept.nom} ({dept.code})</span>
+            <span class={`text-xs font-bold px-2 py-0.5 rounded-full ${dept.stats.tauxRupture > 50 ? 'bg-red-100 text-red-700' : dept.stats.tauxRupture > 20 ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
+              {dept.stats.tauxRupture}%
+            </span>
+          </div>
+          <div class="text-xs text-[var(--color-text-muted)] mt-1">
+            {dept.stats.totalRupture} / {dept.stats.totalStations} en rupture
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- All Departments -->
+  <section class="mb-8">
+    <h2 class="text-2xl font-bold mb-4">Tous les departements</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+      {deptList.map(dept => (
+        <a href={`/station-essence/${dept.slug}/`}
+           class="text-sm bg-white rounded px-3 py-2 hover:bg-gray-50 transition text-center shadow-sm">
+          <span class="font-medium">{dept.code}</span> - {dept.nom}
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- SEO Content -->
+  <section class="bg-white rounded-lg shadow p-6 mb-8">
+    <h2 class="text-xl font-bold mb-3">A propos de la penurie de carburant</h2>
+    <p class="text-sm text-[var(--color-text-muted)] mb-2">
+      La France fait face a une penurie de carburant affectant de nombreuses stations-service sur le territoire.
+      Penurie.fr vous permet de verifier en temps reel la disponibilite des carburants (Gazole, SP95, E10, SP98, E85, GPLc)
+      dans les stations pres de chez vous.
+    </p>
+    <p class="text-sm text-[var(--color-text-muted)]">
+      Nos donnees proviennent de l'API officielle du Ministere de l'Economie, mise a jour regulierement.
+      Vous pouvez egalement signaler une rupture de stock pour aider les autres automobilistes.
+    </p>
+  </section>
+
+  <p class="text-xs text-center text-[var(--color-text-muted)] mb-4">
+    Derniere mise a jour : {new Date(meta.lastUpdate).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' })}
+  </p>
+</BaseLayout>

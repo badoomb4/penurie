@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const title = "A propos - Penurie.fr - Mentions legales";
+const description = "Informations sur Penurie.fr, sources des donnees, mentions legales et politique de confidentialite.";
+---
+
+<BaseLayout title={title} description={description}>
+  <h1 class="text-2xl font-bold mb-6">A propos de Penurie.fr</h1>
+
+  <div class="bg-white rounded-lg shadow p-6 space-y-6 text-sm leading-relaxed">
+    <section>
+      <h2 class="text-lg font-bold mb-2">Source des donnees</h2>
+      <p>
+        Les donnees affichees sur Penurie.fr proviennent de l'API officielle du
+        <strong>Ministere de l'Economie, des Finances et de la Souverainete industrielle et numerique</strong>,
+        disponible sur <a href="https://data.economie.gouv.fr" class="text-[var(--color-primary)] underline" target="_blank" rel="noopener">data.economie.gouv.fr</a>.
+      </p>
+      <p class="mt-2">
+        Ces donnees sont publiees sous <strong>Licence Ouverte / Open Licence</strong> et sont mises a jour regulierement.
+        Les informations incluent les adresses, coordonnees GPS, horaires, prix par type de carburant,
+        ruptures de stock et fermetures temporaires ou definitives.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-lg font-bold mb-2">Fonctionnement</h2>
+      <p>
+        Penurie.fr recupere automatiquement les donnees de l'API gouvernementale toutes les 4 heures.
+        Les pages sont ensuite regenerees pour afficher les informations les plus recentes.
+      </p>
+      <p class="mt-2">
+        Les signalements de rupture sont fournis par les utilisateurs et ne sont pas des donnees officielles.
+        Ils expirent automatiquement apres 2 heures.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-lg font-bold mb-2">Mentions legales</h2>
+      <p>Penurie.fr est un site d'information a but non officiel.</p>
+      <p class="mt-2">
+        Les informations sont fournies a titre indicatif et ne sauraient engager la responsabilite de l'editeur.
+        Pour des informations officielles, consultez le site du Ministere de l'Economie.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-lg font-bold mb-2">Contact</h2>
+      <p>Pour toute question, contactez-nous via notre depot GitHub.</p>
+    </section>
+  </div>
+</BaseLayout>

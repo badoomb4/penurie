@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import meta from '../../data/meta.json';
+import deptList from '../../data/departements-list.json';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+const title = "Carte des stations essence en France - Penurie.fr";
+const description = "Carte interactive des stations-service en France. Visualisez les stations ouvertes, en rupture et fermees pres de chez vous.";
+
+// Load all stations for the full map (we'll limit to avoid huge JSON)
+const allStations: any[] = [];
+for (const dept of deptList) {
+  try {
+    const data = JSON.parse(readFileSync(join(process.cwd(), 'data', 'departements', `${dept.code}.json`), 'utf-8'));
+    for (const s of data.stations) {
+      if (s.lat && s.lon) {
+        allStations.push({
+          id: s.id, lat: s.lat, lon: s.lon,
+          adresse: s.adresse, ville: s.ville, cp: s.cp,
+          rupture: s.ruptures.temporaire.length > 0 || s.ruptures.definitive.length > 0,
+          allRupture: s.carburantsDisponibles.length === 0 && (s.ruptures.temporaire.length > 0 || s.ruptures.definitive.length > 0),
+          deptSlug: dept.slug,
+        });
+      }
+    }
+  } catch {}
+}
+---
+
+<BaseLayout title={title} description={description}>
+  <h1 class="text-2xl font-bold mb-4">Carte des stations essence en France</h1>
+
+  <div class="flex flex-wrap gap-4 mb-4 text-sm">
+    <div class="flex items-center gap-1">
+      <span class="inline-block w-3 h-3 rounded-full bg-green-600"></span> Disponible
+    </div>
+    <div class="flex items-center gap-1">
+      <span class="inline-block w-3 h-3 rounded-full bg-orange-500"></span> Rupture partielle
+    </div>
+    <div class="flex items-center gap-1">
+      <span class="inline-block w-3 h-3 rounded-full bg-red-600"></span> Rupture totale
+    </div>
+    <div class="text-[var(--color-text-muted)]">
+      {meta.totalStations} stations | {meta.totalRupture} en rupture ({meta.tauxRupture}%)
+    </div>
+  </div>
+
+  <div id="map" class="h-[70vh] rounded-lg shadow bg-gray-100"
+       data-stations={JSON.stringify(allStations)}>
+  </div>
+
+  <p class="text-xs text-center text-[var(--color-text-muted)] mt-4">
+    Donnees officielles - Derniere mise a jour : {new Date(meta.lastUpdate).toLocaleString('fr-FR')}
+  </p>
+</BaseLayout>
+
+<script>
+  import '../scripts/map.js';
+</script>

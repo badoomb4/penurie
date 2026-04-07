@@ -1,0 +1,45 @@
+---
+interface Props {
+  totalStations: number;
+  totalRupture: number;
+  tauxRupture: number;
+  prixMoyen: Record<string, number | null>;
+}
+
+const { totalStations, totalRupture, tauxRupture, prixMoyen } = Astro.props;
+const stationsOuvertes = totalStations - totalRupture;
+---
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="bg-white rounded-lg shadow p-4 text-center">
+    <div class="text-3xl font-bold text-[var(--color-primary)]">{totalStations.toLocaleString('fr-FR')}</div>
+    <div class="text-sm text-[var(--color-text-muted)]">Stations total</div>
+  </div>
+  <div class="bg-white rounded-lg shadow p-4 text-center">
+    <div class="text-3xl font-bold text-[var(--color-success)]">{stationsOuvertes.toLocaleString('fr-FR')}</div>
+    <div class="text-sm text-[var(--color-text-muted)]">Stations disponibles</div>
+  </div>
+  <div class="bg-white rounded-lg shadow p-4 text-center">
+    <div class="text-3xl font-bold text-[var(--color-danger)]">{totalRupture.toLocaleString('fr-FR')}</div>
+    <div class="text-sm text-[var(--color-text-muted)]">Stations en rupture</div>
+  </div>
+  <div class="bg-white rounded-lg shadow p-4 text-center">
+    <div class="text-3xl font-bold text-[var(--color-warning)]">{tauxRupture}%</div>
+    <div class="text-sm text-[var(--color-text-muted)]">Taux de rupture</div>
+  </div>
+</div>
+
+{prixMoyen && (
+  <div class="bg-white rounded-lg shadow p-4 mb-6">
+    <h3 class="font-bold text-sm mb-2 text-[var(--color-text-muted)]">Prix moyens</h3>
+    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
+      {Object.entries({ gazole: 'Gazole', sp95: 'SP95', e10: 'E10', sp98: 'SP98', e85: 'E85', gplc: 'GPLc' })
+        .map(([key, label]) => (
+          <div>
+            <div class="text-xs text-[var(--color-text-muted)]">{label}</div>
+            <div class="font-bold">{prixMoyen[key] ? `${prixMoyen[key]?.toFixed(3)}` : '-'}</div>
+          </div>
+        ))}
+    </div>
+  </div>
+)}

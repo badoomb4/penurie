@@ -1,0 +1,78 @@
+---
+interface Props {
+  large?: boolean;
+}
+const { large = false } = Astro.props;
+---
+
+<div class={`relative ${large ? 'max-w-xl mx-auto' : 'max-w-md'}`}>
+  <form id="search-form" action="/" method="get" class="relative">
+    <input
+      type="text"
+      id="search-input"
+      name="q"
+      placeholder="Entrez un code postal ou une ville..."
+      autocomplete="off"
+      class={`w-full border-2 border-gray-300 rounded-lg focus:border-[var(--color-primary)] focus:outline-none transition ${large ? 'px-5 py-4 text-lg' : 'px-4 py-2.5 text-sm'}`}
+    />
+    <button type="submit" class={`absolute right-2 bg-[var(--color-primary)] text-white rounded-md hover:bg-[var(--color-primary-light)] transition ${large ? 'top-2 px-5 py-2 text-base' : 'top-1.5 px-3 py-1.5 text-sm'}`}>
+      Rechercher
+    </button>
+  </form>
+  <div id="search-results" class="absolute z-40 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 hidden max-h-60 overflow-y-auto">
+  </div>
+</div>
+
+<script>
+  const input = document.getElementById('search-input') as HTMLInputElement;
+  const results = document.getElementById('search-results') as HTMLDivElement;
+  const form = document.getElementById('search-form') as HTMLFormElement;
+  let searchIndex: Array<{ cp: string; ville: string; deptSlug: string; dept: string }> = [];
+
+  async function loadIndex() {
+    try {
+      const res = await fetch('/search-index.json');
+      searchIndex = await res.json();
+    } catch { /* index not available */ }
+  }
+
+  function search(query: string) {
+    if (!query || query.length < 2) {
+      results.classList.add('hidden');
+      return;
+    }
+    const q = query.toLowerCase().trim();
+    const matches = searchIndex
+      .filter(item => item.cp.startsWith(q) || item.ville.toLowerCase().includes(q))
+      .slice(0, 8);
+
+    if (matches.length === 0) {
+      results.classList.add('hidden');
+      return;
+    }
+
+    results.innerHTML = matches.map(m =>
+      `<a href="/station-essence/${m.deptSlug}/${m.cp}/" class="block px-4 py-2 hover:bg-gray-100 text-sm">
+        <span class="font-medium">${m.cp}</span> — ${m.ville} (${m.dept})
+      </a>`
+    ).join('');
+    results.classList.remove('hidden');
+  }
+
+  input?.addEventListener('input', () => search(input.value));
+  input?.addEventListener('focus', () => { if (!searchIndex.length) loadIndex(); });
+  document.addEventListener('click', (e) => {
+    if (!(e.target as Element)?.closest('#search-form, #search-results')) {
+      results?.classList.add('hidden');
+    }
+  });
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = input.value.trim();
+    if (/^\d{5}$/.test(q)) {
+      const match = searchIndex.find(m => m.cp === q);
+      if (match) window.location.href = `/station-essence/${match.deptSlug}/${match.cp}/`;
+    }
+  });
+</script>
