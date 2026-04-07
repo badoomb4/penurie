@@ -38,7 +38,7 @@ const fuelOrder = ['gazole', 'sp95', 'e10', 'sp98', 'e85', 'gplc'];
       <h3 class="font-bold text-base">{s.adresse}</h3>
       <p class="text-sm text-[var(--color-text-muted)]">{s.cp} {s.ville}</p>
     </div>
-    <span class={`${statusBadge} text-white text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap`}>
+    <span class={`${statusBadge} text-white text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap`} role="status" aria-label={`Statut: ${statusText}`}>
       {statusText}
     </span>
   </div>

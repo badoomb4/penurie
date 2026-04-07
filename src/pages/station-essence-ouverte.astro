@@ -1,0 +1,129 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import deptList from '../../data/departements-list.json';
+import meta from '../../data/meta.json';
+
+const totalOpen = meta.totalStations - meta.totalRupture;
+const totalClosed = meta.totalRupture;
+
+const title = "Station Essence Ouverte - Trouvez du Carburant | Essence-Disponible.fr";
+const description = `${totalOpen} stations essence ouvertes en France. Trouvez une station ouverte pres de chez vous par departement. Mis a jour regulierement.`;
+
+const deptsByOpen = [...deptList]
+  .map((d: any) => ({
+    ...d,
+    openStations: d.stats.totalStations - d.stats.totalRupture,
+    pctDisponible: d.stats.totalStations > 0
+      ? Math.round(((d.stats.totalStations - d.stats.totalRupture) / d.stats.totalStations) * 100)
+      : 0,
+  }))
+  .sort((a: any, b: any) => b.openStations - a.openStations);
+
+const breadcrumbs = [
+  { label: 'Accueil', href: '/' },
+  { label: 'Stations ouvertes' },
+];
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://essence-disponible.fr/" },
+        { "@type": "ListItem", "position": 2, "name": "Stations ouvertes", "item": "https://essence-disponible.fr/station-essence-ouverte/" },
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Combien de stations sont ouvertes en France ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": `Il y a actuellement ${totalOpen} stations essence ouvertes sur un total de ${meta.totalStations} en France, soit un taux de disponibilite de ${100 - meta.tauxRupture}%.`
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Comment trouver une station ouverte pres de chez moi ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Consultez notre carte interactive ou selectionnez votre departement dans le tableau ci-dessous pour voir la liste des stations ouvertes avec leurs prix et disponibilites en temps reel."
+          }
+        }
+      ]
+    }
+  ]
+};
+---
+
+<BaseLayout title={title} description={description} schema={schema}>
+  <Breadcrumb items={breadcrumbs} />
+
+  <h1 class="text-2xl md:text-3xl font-extrabold mb-2">
+    Stations essence ouvertes en France
+  </h1>
+  <p class="text-[var(--color-text-muted)] mb-6">
+    Retrouvez les stations essence ouvertes par departement. <strong>{totalOpen} stations disponibles</strong> sur {meta.totalStations} au total.
+  </p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-green-50 border-2 border-green-300 rounded-lg p-4 text-center">
+      <div class="text-sm text-green-700 font-medium">Stations ouvertes</div>
+      <div class="text-2xl font-bold text-green-800">{totalOpen}</div>
+      <div class="text-sm text-green-600">{100 - meta.tauxRupture}% de disponibilite</div>
+    </div>
+    <div class="bg-red-50 border-2 border-red-300 rounded-lg p-4 text-center">
+      <div class="text-sm text-red-700 font-medium">Stations en rupture</div>
+      <div class="text-2xl font-bold text-red-800">{totalClosed}</div>
+      <div class="text-sm text-red-600">{meta.tauxRupture}% en rupture</div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="text-left px-4 py-2 font-semibold">#</th>
+          <th class="text-left px-4 py-2 font-semibold">Departement</th>
+          <th class="text-right px-4 py-2 font-semibold">Stations ouvertes</th>
+          <th class="text-right px-4 py-2 font-semibold">Total stations</th>
+          <th class="text-right px-4 py-2 font-semibold">% disponible</th>
+        </tr>
+      </thead>
+      <tbody>
+        {deptsByOpen.map((dept: any, i: number) => (
+          <tr class={`border-t ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50`}>
+            <td class="px-4 py-2 text-[var(--color-text-muted)]">{i + 1}</td>
+            <td class="px-4 py-2">
+              <a href={`/station-essence/${dept.slug}/`} class="text-[var(--color-primary)] hover:underline font-medium">
+                {dept.nom} ({dept.code})
+              </a>
+            </td>
+            <td class="px-4 py-2 text-right font-mono font-bold">{dept.openStations}</td>
+            <td class="px-4 py-2 text-right">{dept.stats.totalStations}</td>
+            <td class="px-4 py-2 text-right">
+              <span class={dept.pctDisponible >= 50 ? 'text-green-700 font-bold' : dept.pctDisponible >= 20 ? 'text-orange-600 font-bold' : 'text-red-700 font-bold'}>
+                {dept.pctDisponible}%
+              </span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <section class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-bold mb-2">Trouver une station essence ouverte pendant la penurie</h2>
+    <p class="text-sm text-[var(--color-text-muted)] leading-relaxed">
+      En periode de penurie de carburant, il est essentiel de savoir quelles stations essence sont ouvertes pres de chez vous.
+      Actuellement, <strong>{totalOpen} stations sur {meta.totalStations}</strong> sont operationnelles en France, soit un taux de disponibilite de {100 - meta.tauxRupture}%.
+      Ce tableau classe les departements par nombre de stations ouvertes pour vous aider a trouver du carburant rapidement.
+      Cliquez sur un departement pour voir le detail des stations disponibles, leurs prix et leurs horaires.
+      Les donnees sont mises a jour regulierement pour refleter la situation en temps reel.
+    </p>
+  </section>
+</BaseLayout>

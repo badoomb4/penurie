@@ -1,0 +1,119 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import deptList from '../../data/departements-list.json';
+import meta from '../../data/meta.json';
+
+const title = "Prix du SP95 en France par Departement | Essence-Disponible.fr";
+const description = `Prix moyen du SP95 : ${meta.prixMoyen.sp95?.toFixed(3) || '-'} EUR/L. Comparez les prix du SP95 dans les ${deptList.length} departements francais. Mis a jour regulierement.`;
+
+const deptsByPrice = [...deptList]
+  .filter((d: any) => d.stats.prixMoyen.sp95)
+  .sort((a: any, b: any) => a.stats.prixMoyen.sp95 - b.stats.prixMoyen.sp95);
+
+const cheapest = deptsByPrice[0];
+const mostExpensive = deptsByPrice[deptsByPrice.length - 1];
+
+const breadcrumbs = [
+  { label: 'Accueil', href: '/' },
+  { label: 'Prix des carburants', href: '/prix-carburants/' },
+  { label: 'Prix SP95' },
+];
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://essence-disponible.fr/" },
+        { "@type": "ListItem", "position": 2, "name": "Prix des carburants", "item": "https://essence-disponible.fr/prix-carburants/" },
+        { "@type": "ListItem", "position": 3, "name": "Prix SP95", "item": "https://essence-disponible.fr/prix-sp95/" },
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Quel est le prix du SP95 aujourd'hui en France ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": `Le prix moyen du SP95 en France est de ${meta.prixMoyen.sp95?.toFixed(3) || '-'} EUR/L. Le departement le moins cher est ${cheapest?.nom} a ${cheapest?.stats.prixMoyen.sp95?.toFixed(3)} EUR/L.`
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Ou trouver le SP95 le moins cher ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": `Le SP95 le moins cher se trouve dans le ${cheapest?.nom} (${cheapest?.code}) a ${cheapest?.stats.prixMoyen.sp95?.toFixed(3)} EUR/L en moyenne. Le plus cher est dans le ${mostExpensive?.nom} a ${mostExpensive?.stats.prixMoyen.sp95?.toFixed(3)} EUR/L.`
+          }
+        }
+      ]
+    }
+  ]
+};
+---
+
+<BaseLayout title={title} description={description} schema={schema}>
+  <Breadcrumb items={breadcrumbs} />
+
+  <h1 class="text-2xl md:text-3xl font-extrabold mb-2">
+    Prix du SP95 en France
+  </h1>
+  <p class="text-[var(--color-text-muted)] mb-6">
+    Comparatif du prix du SP95 par departement. Prix moyen national : <strong>{meta.prixMoyen.sp95?.toFixed(3) || '-'} EUR/L</strong>
+  </p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-green-50 border-2 border-green-300 rounded-lg p-4 text-center">
+      <div class="text-sm text-green-700 font-medium">Departement le moins cher</div>
+      <div class="text-2xl font-bold text-green-800">{cheapest?.stats.prixMoyen.sp95?.toFixed(3)} EUR/L</div>
+      <a href={`/station-essence/${cheapest?.slug}/`} class="text-sm text-green-600 underline">{cheapest?.nom} ({cheapest?.code})</a>
+    </div>
+    <div class="bg-red-50 border-2 border-red-300 rounded-lg p-4 text-center">
+      <div class="text-sm text-red-700 font-medium">Departement le plus cher</div>
+      <div class="text-2xl font-bold text-red-800">{mostExpensive?.stats.prixMoyen.sp95?.toFixed(3)} EUR/L</div>
+      <a href={`/station-essence/${mostExpensive?.slug}/`} class="text-sm text-red-600 underline">{mostExpensive?.nom} ({mostExpensive?.code})</a>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="text-left px-4 py-2 font-semibold">#</th>
+          <th class="text-left px-4 py-2 font-semibold">Departement</th>
+          <th class="text-right px-4 py-2 font-semibold">Prix moyen SP95</th>
+          <th class="text-right px-4 py-2 font-semibold">Stations</th>
+        </tr>
+      </thead>
+      <tbody>
+        {deptsByPrice.map((dept: any, i: number) => (
+          <tr class={`border-t ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50`}>
+            <td class="px-4 py-2 text-[var(--color-text-muted)]">{i + 1}</td>
+            <td class="px-4 py-2">
+              <a href={`/station-essence/${dept.slug}/`} class="text-[var(--color-primary)] hover:underline font-medium">
+                {dept.nom} ({dept.code})
+              </a>
+            </td>
+            <td class="px-4 py-2 text-right font-mono font-bold">{dept.stats.prixMoyen.sp95?.toFixed(3)} EUR</td>
+            <td class="px-4 py-2 text-right">{dept.stats.totalStations}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <section class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-bold mb-2">Le prix du SP95 en France aujourd'hui</h2>
+    <p class="text-sm text-[var(--color-text-muted)] leading-relaxed">
+      Le prix moyen du SP95 en France est actuellement de <strong>{meta.prixMoyen.sp95?.toFixed(3)} EUR/L</strong>.
+      Le departement ou le SP95 est le moins cher est le <strong>{cheapest?.nom}</strong> a {cheapest?.stats.prixMoyen.sp95?.toFixed(3)} EUR/L,
+      tandis que le plus cher est le <strong>{mostExpensive?.nom}</strong> a {mostExpensive?.stats.prixMoyen.sp95?.toFixed(3)} EUR/L.
+      En periode de penurie, les prix peuvent varier fortement d'une station a l'autre.
+      Consultez les pages departement pour trouver les stations les moins cheres pres de chez vous.
+    </p>
+  </section>
+</BaseLayout>

@@ -24,12 +24,28 @@ const deptData = JSON.parse(readFileSync(dataPath, 'utf-8'));
 const stations = deptData.stations;
 const stats = deptData.stats;
 
-const title = `Stations essence ${deptNom} (${deptCode}) - Prix et disponibilite`;
-const description = `Trouvez les stations essence ouvertes dans le ${deptNom} (${deptCode}). ${stats.totalRupture} stations en rupture sur ${stats.totalStations}. Prix gazole, SP95, E10.`;
+const stationsOuvertes = stats.totalStations - stats.totalRupture;
+const title = `Station Essence ${deptNom} (${deptCode}) - Prix et Dispo | Essence-Disponible.fr`;
+const description = `${stats.totalStations} stations essence dans le ${deptNom} (${deptCode}). ${stats.totalRupture} en rupture, ${stationsOuvertes} ouvertes. Prix moyen gazole ${stats.prixMoyen.gazole?.toFixed(3) || '-'} EUR/L.`;
 
 const breadcrumbs = [
   { label: 'Accueil', href: '/' },
-  { label: `${deptNom} (${deptCode})` },
+  { label: `${deptNom} (${deptCode}) - ${stats.totalStations} stations` },
+];
+
+const deptFaq = [
+  {
+    question: `Combien de stations essence sont ouvertes dans le ${deptNom} ?`,
+    answer: `Le departement ${deptNom} (${deptCode}) compte ${stats.totalStations} stations-service. Actuellement, ${stationsOuvertes} stations sont ouvertes et approvisionnees, soit ${100 - stats.tauxRupture}% du total. ${stats.totalRupture} stations signalent au moins une rupture de stock.`
+  },
+  {
+    question: `Quel est le prix du gazole dans le ${deptNom} ?`,
+    answer: `Le prix moyen du gazole dans le ${deptNom} est de ${stats.prixMoyen.gazole?.toFixed(3) || '-'} EUR/L. Le SP95 est a ${stats.prixMoyen.sp95?.toFixed(3) || '-'} EUR/L et l'E10 a ${stats.prixMoyen.e10?.toFixed(3) || '-'} EUR/L. Ces prix varient selon les stations et sont mis a jour regulierement.`
+  },
+  {
+    question: `Y a-t-il une penurie de carburant dans le ${deptNom} ?`,
+    answer: `Oui, le taux de rupture dans le ${deptNom} est actuellement de ${stats.tauxRupture}%. Consultez la liste des stations ci-dessous pour connaitre l'etat de chaque station en detail.`
+  }
 ];
 
 const schema = {
@@ -60,6 +76,14 @@ const schema = {
             "addressCountry": "FR"
           }
         }
+      }))
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": deptFaq.map(faq => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": { "@type": "Answer", "text": faq.answer }
       }))
     }
   ]
@@ -122,8 +146,37 @@ const schema = {
     </div>
   </section>
 
+  <!-- FAQ Section -->
+  <section class="mt-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Questions frequentes - {deptNom}</h2>
+    <div class="space-y-3">
+      {deptFaq.map(faq => (
+        <details class="bg-white rounded-lg shadow group">
+          <summary class="px-5 py-4 cursor-pointer font-semibold text-sm hover:text-[var(--color-primary)] transition flex items-center justify-between">
+            {faq.question}
+            <span class="text-[var(--color-text-muted)] group-open:rotate-180 transition-transform" aria-hidden="true">&#9660;</span>
+          </summary>
+          <p class="px-5 pb-4 text-sm text-[var(--color-text-muted)] leading-relaxed">{faq.answer}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <!-- SEO Content -->
+  <section class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-bold mb-2">Penurie de carburant dans le {deptNom} ({deptCode})</h2>
+    <p class="text-sm text-[var(--color-text-muted)] leading-relaxed">
+      La penurie de carburant dans le {deptNom} touche actuellement <strong>{stats.tauxRupture}%</strong> des
+      {stats.totalStations} stations-service du departement. Sur ces {stats.totalStations} stations,
+      <strong>{stationsOuvertes} restent ouvertes</strong> et approvisionnees.
+      Le prix moyen du gazole est de <strong>{stats.prixMoyen.gazole?.toFixed(3) || '-'} EUR/L</strong>,
+      le SP95 a {stats.prixMoyen.sp95?.toFixed(3) || '-'} EUR/L et l'E10 a {stats.prixMoyen.e10?.toFixed(3) || '-'} EUR/L.
+      Consultez la carte ci-dessus et la liste des stations pour trouver du carburant pres de chez vous dans le {deptNom}.
+    </p>
+  </section>
+
   <p class="text-xs text-center text-[var(--color-text-muted)] mt-6 mb-4">
-    Derniere mise a jour : {new Date(deptData.stations[0]?.maj?.gazole || Date.now()).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' })}
+    Donnees officielles - Ministere de l'Economie - Mises a jour regulierement
   </p>
 </BaseLayout>
 

@@ -32,12 +32,13 @@ const stations = cpData.stations;
 const stats = cpData.stats;
 const ville = cpData.ville || cp;
 
-const title = `Stations essence ${cp} ${ville} - Disponibilite et prix`;
-const description = `Stations essence ${cp} ${ville} (${deptNom}). ${stats.totalStations} stations, ${stats.totalRupture} en rupture. Prix gazole, SP95, E10 et horaires.`;
+const stationsOuvertes = stats.totalStations - stats.totalRupture;
+const title = `Station Essence ${cp} ${ville} - Prix Carburant | Essence-Disponible.fr`;
+const description = `${stats.totalStations} stations essence a ${ville} (${cp}). ${stationsOuvertes} ouvertes, ${stats.totalRupture} en rupture. Gazole ${stats.prixMoyen.gazole?.toFixed(3) || '-'} EUR/L. Horaires et services.`;
 
-// Find sibling postal codes
+// Find sibling postal codes — show up to 20 for better internal linking
 const deptInfo = deptList.find((d: any) => d.code === deptCode);
-const siblingCPs = deptInfo?.codesPostaux.filter((c: string) => c !== cp).slice(0, 10) || [];
+const siblingCPs = deptInfo?.codesPostaux.filter((c: string) => c !== cp).slice(0, 20) || [];
 
 const breadcrumbs = [
   { label: 'Accueil', href: '/' },
@@ -74,14 +75,24 @@ const schema = {
         }
       } : {}),
       "openingHours": s.automate24h ? "Mo-Su 00:00-23:59" : undefined,
+      "amenityFeature": s.services?.map((svc: string) => ({
+        "@type": "LocationFeatureSpecification",
+        "name": svc,
+        "value": true
+      })),
       "offers": Object.entries(s.prix)
         .filter(([, price]: [string, any]) => price && price > 0)
-        .map(([fuel, price]: [string, any]) => ({
-          "@type": "Offer",
-          "name": fuel.toUpperCase(),
-          "price": price,
-          "priceCurrency": "EUR",
-        })),
+        .map(([fuel, price]: [string, any]) => {
+          const ruptureList = [...(s.ruptures?.temporaire || []), ...(s.ruptures?.definitive || [])].map((r: string) => r.toLowerCase());
+          const isRupture = ruptureList.includes(fuel.toLowerCase());
+          return {
+            "@type": "Offer",
+            "name": fuel.toUpperCase(),
+            "price": price,
+            "priceCurrency": "EUR",
+            "availability": isRupture ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
+          };
+        }),
     })),
   ]
 };
@@ -143,8 +154,22 @@ const schema = {
     </section>
   )}
 
+  <!-- SEO Content -->
+  <section class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-bold mb-2">Stations-service a {ville} ({cp})</h2>
+    <p class="text-sm text-[var(--color-text-muted)] leading-relaxed">
+      A {ville} ({cp}, {deptNom}), <strong>{stats.totalStations} station{stats.totalStations > 1 ? 's' : ''}-service</strong> sont
+      recensees. Actuellement, <strong>{stationsOuvertes} station{stationsOuvertes > 1 ? 's sont ouvertes' : ' est ouverte'}</strong>
+      {stats.totalRupture > 0 ? ` et ${stats.totalRupture} signale${stats.totalRupture > 1 ? 'nt' : ''} une rupture de stock` : ''}.
+      {stats.prixMoyen.gazole ? ` Le gazole est en moyenne a ${stats.prixMoyen.gazole.toFixed(3)} EUR/L` : ''}
+      {stats.prixMoyen.sp95 ? `, le SP95 a ${stats.prixMoyen.sp95.toFixed(3)} EUR/L` : ''}
+      {stats.prixMoyen.e10 ? ` et l'E10 a ${stats.prixMoyen.e10.toFixed(3)} EUR/L` : ''}.
+      Consultez les horaires, services et disponibilite detaillee de chaque station ci-dessus.
+    </p>
+  </section>
+
   <p class="text-xs text-center text-[var(--color-text-muted)] mt-6 mb-4">
-    Donnees officielles - Ministere de l'Economie
+    Donnees officielles - Ministere de l'Economie - Mises a jour regulierement
   </p>
 </BaseLayout>
 

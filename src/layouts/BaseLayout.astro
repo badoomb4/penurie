@@ -23,13 +23,21 @@ const currentUrl = canonical || Astro.url.href;
   <link rel="canonical" href={currentUrl} />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
+  <!-- Performance hints -->
+  <link rel="preconnect" href="https://unpkg.com" crossorigin />
+  <link rel="dns-prefetch" href="https://tile.openstreetmap.org" />
+  <link rel="alternate" hreflang="fr" href={currentUrl} />
+
   <!-- Open Graph -->
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   <meta property="og:url" content={currentUrl} />
   <meta property="og:image" content={ogImage} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="fr_FR" />
+  <meta property="og:site_name" content="Essence-Disponible.fr" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -41,6 +49,16 @@ const currentUrl = canonical || Astro.url.href;
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin="" />
+
+  <!-- Organization Schema -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Essence-Disponible.fr",
+    "url": "https://essence-disponible.fr",
+    "description": "Trouvez les stations essence ouvertes en France. Prix, disponibilite et ruptures de stock en temps reel.",
+    "logo": "https://essence-disponible.fr/favicon.svg"
+  })} />
 
   {schema && (
     <script type="application/ld+json" set:html={JSON.stringify(schema)} />
@@ -60,7 +78,7 @@ const currentUrl = canonical || Astro.url.href;
         <a href="/prix-carburants/" class="hover:text-yellow-200 transition">Prix</a>
       </div>
       <button id="mobile-menu-btn" class="md:hidden p-2" aria-label="Menu">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
         </svg>
       </button>
@@ -93,6 +111,9 @@ const currentUrl = canonical || Astro.url.href;
             <li><a href="/carte/" class="hover:text-white transition">Carte des stations</a></li>
             <li><a href="/penurie-carburant/" class="hover:text-white transition">Etat des ruptures</a></li>
             <li><a href="/prix-carburants/" class="hover:text-white transition">Prix des carburants</a></li>
+            <li><a href="/prix-gazole/" class="hover:text-white transition">Prix Gazole</a></li>
+            <li><a href="/prix-sp95/" class="hover:text-white transition">Prix SP95</a></li>
+            <li><a href="/station-essence-ouverte/" class="hover:text-white transition">Stations ouvertes</a></li>
           </ul>
         </div>
         <div>

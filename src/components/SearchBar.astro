@@ -13,13 +13,17 @@ const { large = false } = Astro.props;
       name="q"
       placeholder="Entrez un code postal ou une ville..."
       autocomplete="off"
+      aria-label="Rechercher une station par code postal ou ville"
+      aria-expanded="false"
+      aria-controls="search-results"
+      role="combobox"
       class={`w-full border-2 border-gray-300 rounded-lg focus:border-[var(--color-primary)] focus:outline-none transition ${large ? 'px-5 py-4 text-lg' : 'px-4 py-2.5 text-sm'}`}
     />
-    <button type="submit" class={`absolute right-2 bg-[var(--color-primary)] text-white rounded-md hover:bg-[var(--color-primary-light)] transition ${large ? 'top-2 px-5 py-2 text-base' : 'top-1.5 px-3 py-1.5 text-sm'}`}>
+    <button type="submit" aria-label="Lancer la recherche" class={`absolute right-2 bg-[var(--color-primary)] text-white rounded-md hover:bg-[var(--color-primary-light)] transition ${large ? 'top-2 px-5 py-2 text-base' : 'top-1.5 px-3 py-1.5 text-sm'}`}>
       Rechercher
     </button>
   </form>
-  <div id="search-results" class="absolute z-40 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 hidden max-h-60 overflow-y-auto">
+  <div id="search-results" role="listbox" class="absolute z-40 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 hidden max-h-60 overflow-y-auto">
   </div>
 </div>
 
@@ -48,15 +52,17 @@ const { large = false } = Astro.props;
 
     if (matches.length === 0) {
       results.classList.add('hidden');
+      input.setAttribute('aria-expanded', 'false');
       return;
     }
 
     results.innerHTML = matches.map(m =>
-      `<a href="/station-essence/${m.deptSlug}/${m.cp}/" class="block px-4 py-2 hover:bg-gray-100 text-sm">
+      `<a href="/station-essence/${m.deptSlug}/${m.cp}/" role="option" class="block px-4 py-2 hover:bg-gray-100 text-sm">
         <span class="font-medium">${m.cp}</span> — ${m.ville} (${m.dept})
       </a>`
     ).join('');
     results.classList.remove('hidden');
+    input.setAttribute('aria-expanded', 'true');
   }
 
   input?.addEventListener('input', () => search(input.value));

@@ -5,24 +5,64 @@ import Stats from '../components/Stats.astro';
 import meta from '../../data/meta.json';
 import deptList from '../../data/departements-list.json';
 
-const title = "Penurie de carburant en France - Trouvez une station essence ouverte";
-const description = `Trouvez les stations essence ouvertes pres de chez vous. ${meta.totalStations} stations, ${meta.totalRupture} en rupture (${meta.tauxRupture}%). Prix et disponibilite en temps reel.`;
+const title = "Penurie Carburant France - Station Essence Ouverte | Essence-Disponible.fr";
+const description = `Trouvez une station essence ouverte pres de chez vous. ${meta.totalStations} stations suivies, ${meta.totalRupture} en rupture (${meta.tauxRupture}%). Prix gazole, SP95, E10 en temps reel.`;
 
 const topDepts = [...deptList]
   .sort((a, b) => b.stats.tauxRupture - a.stats.tauxRupture)
   .slice(0, 12);
 
+const stationsOuvertes = meta.totalStations - meta.totalRupture;
+
+const faqItems = [
+  {
+    question: "Ou trouver de l'essence pres de chez moi ?",
+    answer: `Utilisez la barre de recherche ci-dessus pour entrer votre code postal ou votre ville. Essence-Disponible.fr affiche les ${meta.totalStations} stations-service de France avec leur disponibilite en temps reel. Actuellement, ${stationsOuvertes} stations sont ouvertes et approvisionnees.`
+  },
+  {
+    question: "Quelles stations sont en rupture de stock ?",
+    answer: `En ce moment, ${meta.totalRupture} stations sur ${meta.totalStations} signalent au moins une rupture de carburant, soit un taux de ${meta.tauxRupture}%. Consultez la page de votre departement pour voir le detail par station.`
+  },
+  {
+    question: "Quels sont les prix du carburant aujourd'hui ?",
+    answer: `Les prix moyens actuels sont : Gazole ${meta.prixMoyen.gazole?.toFixed(3) || '-'} EUR/L, SP95 ${meta.prixMoyen.sp95?.toFixed(3) || '-'} EUR/L, E10 ${meta.prixMoyen.e10?.toFixed(3) || '-'} EUR/L, SP98 ${meta.prixMoyen.sp98?.toFixed(3) || '-'} EUR/L. Les prix varient selon les departements et les enseignes.`
+  },
+  {
+    question: "Comment signaler une rupture de carburant ?",
+    answer: "Sur chaque fiche station, cliquez sur le bouton 'Signaler une rupture' pour informer les autres automobilistes. Les signalements sont verifies et expirent automatiquement apres 2 heures."
+  },
+  {
+    question: "D'ou viennent les donnees affichees ?",
+    answer: "Toutes les donnees proviennent de l'API officielle du Ministere de l'Economie (data.economie.gouv.fr), publiees sous Licence Ouverte. Elles sont mises a jour plusieurs fois par jour."
+  }
+];
+
 const schema = {
   "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Essence-Disponible.fr",
-  "url": "https://essence-disponible.fr",
-  "description": description,
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": "https://essence-disponible.fr/station-essence/{search_term_string}",
-    "query-input": "required name=search_term_string"
-  }
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "name": "Essence-Disponible.fr",
+      "url": "https://essence-disponible.fr",
+      "description": description,
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://essence-disponible.fr/station-essence/{search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": faqItems.map(faq => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.answer
+        }
+      }))
+    }
+  ]
 };
 ---
 
@@ -97,17 +137,41 @@ const schema = {
     </div>
   </section>
 
+  <!-- FAQ Section -->
+  <section class="mb-8">
+    <h2 class="text-2xl font-bold mb-4">Questions frequentes sur la penurie de carburant</h2>
+    <div class="space-y-3">
+      {faqItems.map(faq => (
+        <details class="bg-white rounded-lg shadow group">
+          <summary class="px-5 py-4 cursor-pointer font-semibold text-sm hover:text-[var(--color-primary)] transition flex items-center justify-between">
+            {faq.question}
+            <span class="text-[var(--color-text-muted)] group-open:rotate-180 transition-transform" aria-hidden="true">&#9660;</span>
+          </summary>
+          <p class="px-5 pb-4 text-sm text-[var(--color-text-muted)] leading-relaxed">{faq.answer}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+
   <!-- SEO Content -->
   <section class="bg-white rounded-lg shadow p-6 mb-8">
-    <h2 class="text-xl font-bold mb-3">A propos de la penurie de carburant</h2>
-    <p class="text-sm text-[var(--color-text-muted)] mb-2">
-      La France fait face a une penurie de carburant affectant de nombreuses stations-service sur le territoire.
+    <h2 class="text-xl font-bold mb-3">Penurie de carburant en France : situation actuelle</h2>
+    <p class="text-sm text-[var(--color-text-muted)] mb-3">
+      La penurie de carburant en France touche actuellement <strong>{meta.tauxRupture}% des {meta.totalStations.toLocaleString('fr-FR')} stations-service</strong> du territoire.
+      {stationsOuvertes.toLocaleString('fr-FR')} stations restent ouvertes et approvisionnees.
+      Le prix moyen du Gazole est de <strong>{meta.prixMoyen.gazole?.toFixed(3) || '-'} EUR/L</strong>,
+      le SP95 a <strong>{meta.prixMoyen.sp95?.toFixed(3) || '-'} EUR/L</strong>
+      et l'E10 a <strong>{meta.prixMoyen.e10?.toFixed(3) || '-'} EUR/L</strong>.
+    </p>
+    <p class="text-sm text-[var(--color-text-muted)] mb-3">
       Essence-Disponible.fr vous permet de verifier en temps reel la disponibilite des carburants (Gazole, SP95, E10, SP98, E85, GPLc)
-      dans les stations pres de chez vous.
+      dans les stations-service pres de chez vous. Entrez votre code postal ou votre ville dans la barre de recherche pour trouver
+      les stations ouvertes a proximite, comparer les prix et consulter les horaires d'ouverture.
     </p>
     <p class="text-sm text-[var(--color-text-muted)]">
-      Nos donnees proviennent de l'API officielle du Ministere de l'Economie, mise a jour regulierement.
-      Vous pouvez egalement signaler une rupture de stock pour aider les autres automobilistes.
+      Toutes les donnees proviennent de l'API officielle du <a href="https://data.economie.gouv.fr" class="text-[var(--color-primary)] underline" target="_blank" rel="noopener">Ministere de l'Economie</a>,
+      publiees sous Licence Ouverte et mises a jour plusieurs fois par jour.
+      Vous pouvez egalement <strong>signaler une rupture de stock</strong> pour aider les autres automobilistes.
     </p>
   </section>
 
