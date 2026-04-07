@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /api/
-Sitemap: https://penurie.fr/sitemap-index.xml
+Sitemap: https://essence-disponible.fr/sitemap-index.xml

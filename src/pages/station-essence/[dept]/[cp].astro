@@ -51,9 +51,9 @@ const schema = {
     {
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://penurie.fr/" },
-        { "@type": "ListItem", "position": 2, "name": `${deptNom} (${deptCode})`, "item": `https://penurie.fr/station-essence/${deptSlug}/` },
-        { "@type": "ListItem", "position": 3, "name": `${cp} ${ville}`, "item": `https://penurie.fr/station-essence/${deptSlug}/${cp}/` },
+        { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://essence-disponible.fr/" },
+        { "@type": "ListItem", "position": 2, "name": `${deptNom} (${deptCode})`, "item": `https://essence-disponible.fr/station-essence/${deptSlug}/` },
+        { "@type": "ListItem", "position": 3, "name": `${cp} ${ville}`, "item": `https://essence-disponible.fr/station-essence/${deptSlug}/${cp}/` },
       ]
     },
     ...stations.map((s: any) => ({

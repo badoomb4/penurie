@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
-  site: 'https://penurie.fr',
+  site: 'https://essence-disponible.fr',
   vite: {
     plugins: [tailwindcss()]
   },
